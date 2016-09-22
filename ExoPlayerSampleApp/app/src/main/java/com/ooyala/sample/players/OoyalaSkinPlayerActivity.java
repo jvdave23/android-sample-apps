@@ -9,7 +9,9 @@ import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
 import com.ooyala.android.OoyalaPlayer;
 import com.ooyala.android.OoyalaNotification;
 import com.ooyala.android.PlayerDomain;
+import com.ooyala.android.StreamSelector;
 import com.ooyala.android.configuration.Options;
+import com.ooyala.android.item.Stream;
 import com.ooyala.sample.R;
 
 import com.ooyala.android.skin.OoyalaSkinLayout;
@@ -20,8 +22,10 @@ import com.ooyala.android.util.SDCardLogcatOoyalaEventsLogger;
 
 import org.json.JSONObject;
 
+import java.util.Iterator;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Set;
 
 /**
  * This activity illustrates how you can play basic playback video using the Skin SDK
@@ -43,6 +47,49 @@ public class OoyalaSkinPlayerActivity extends Activity implements Observer, Defa
   protected OoyalaPlayer player;
 
   /**
+   * Override the stream class so that we can manually set the WVServerPath
+   */
+  private static class WVStream extends Stream {
+    WVStream(String url, String deliveryType) {
+      super(url, deliveryType);
+    }
+
+    public void setWidevineServerPath(String path) {
+      _widevineServerPath = path;
+    }
+  }
+
+  /**
+   * Create a new StreamSelector which lets us modify the stream before it goes into ExoPlayer
+   * NOTE: This removes all support for HLS or MP4 assets, and will only play DASH videos
+   */
+  private static class NewStreamSelector implements StreamSelector {
+    public NewStreamSelector() {
+    }
+    public Stream bestStream(Set<Stream> streams, boolean isWifiEnabled) {
+      if(streams != null && streams.size() != 0) {
+        Iterator var4 = streams.iterator();
+        while(var4.hasNext()) {
+          Stream stream = (Stream)var4.next();
+
+          //If the asset is DASH, manually set the Widevine Server Path
+          if(stream.getDeliveryType().equals("dash")) {
+            if (stream.getWidevineServerPath() == null) {
+              WVStream s = new WVStream(stream.decodedURL().toString(), stream.getDeliveryType());
+
+              //TODO: Create the correct Widevine Server Path based on the asset (generally pcode/embed_code in the url)
+              s.setWidevineServerPath("http://player.ooyala.com/sas/drm2/tsbmYyOjRH6dK3rmGxeTP2uleUj_/1uczVsNTE6v894WfD2TSY7qmDSQdGr73/widevine_modular/ooyala");
+              return s;
+            }
+            return stream;
+          }
+        }
+      }
+      return null;
+    }
+  }
+
+  /**
    * Called when the activity is first created.
    */
   @Override
@@ -56,7 +103,7 @@ public class OoyalaSkinPlayerActivity extends Activity implements Observer, Defa
 
     // Get the SkinLayout from our layout xml
     OoyalaSkinLayout skinLayout = (OoyalaSkinLayout)findViewById(R.id.ooyalaSkin);
-
+    Stream.setStreamSelector(new NewStreamSelector());
     // Create the OoyalaPlayer, with some built-in UI disabled
     PlayerDomain domain = new PlayerDomain(DOMAIN);
     Options options = new Options.Builder().setShowPromoImage(false).setShowNativeLearnMoreButton(false).setUseExoPlayer(true).build();
