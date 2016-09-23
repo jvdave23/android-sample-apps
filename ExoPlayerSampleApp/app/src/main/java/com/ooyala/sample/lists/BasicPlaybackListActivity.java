@@ -40,7 +40,9 @@ public class BasicPlaybackListActivity extends Activity implements OnItemClickLi
     selectionMap = new LinkedHashMap<String, PlayerSelectionOption>();
     //Populate the embed map
     selectionMap.put("MS", new PlayerSelectionOption("1uczVsNTE6v894WfD2TSY7qmDSQdGr73", "tsbmYyOjRH6dK3rmGxeTP2uleUj_", "http://www.ooyala.com", OoyalaSkinPlayerActivity.class));
+selectionMap.put("MS 40eW", new PlayerSelectionOption("40eW9wNTE61KjnXxx_jw_GbAv4ZdusjN", "tsbmYyOjRH6dK3rmGxeTP2uleUj_", "http://www.ooyala.com", OoyalaSkinPlayerActivity.class));
     selectionMap.put("Widevine DASH Entitlement (Not Configured)", new PlayerSelectionOption("l2dDViNDE6RK2ZwaS0X5MNxng7zPsn0R", "FoeG863GnBL4IhhlFC1Q2jqbkH9m", "http://www.ooyala.com", OoyalaSkinOPTPlayerActivity.class));
+
     selectionMap.put("Widevine DASH", new PlayerSelectionOption("BuY3RsMzE61s6nTC5ct6R-DOapuPt5f7", "FoeG863GnBL4IhhlFC1Q2jqbkH9m", "http://www.ooyala.com", OoyalaSkinPlayerActivity.class));
     selectionMap.put("4:3 Aspect Ratio", new PlayerSelectionOption("FwaXZjcjrkydIftLal2cq9ymQMuvjvD8", "c0cTkxOqALQviQIGAHWY5hP0q9gU", "http://www.ooyala.com", OoyalaSkinPlayerActivity.class));
     selectionMap.put( "MP4 Video", new PlayerSelectionOption("h4aHB1ZDqV7hbmLEv4xSOx3FdUUuephx", "c0cTkxOqALQviQIGAHWY5hP0q9gU", "http://www.ooyala.com", OoyalaSkinPlayerActivity.class) );
