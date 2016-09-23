@@ -6,9 +6,11 @@ import android.util.Log;
 import android.view.KeyEvent;
 
 import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
+import com.ooyala.android.DefaultPlayerInfo;
 import com.ooyala.android.OoyalaPlayer;
 import com.ooyala.android.OoyalaNotification;
 import com.ooyala.android.PlayerDomain;
+import com.ooyala.android.PlayerInfo;
 import com.ooyala.android.StreamSelector;
 import com.ooyala.android.configuration.Options;
 import com.ooyala.android.item.Stream;
@@ -22,6 +24,7 @@ import com.ooyala.android.util.SDCardLogcatOoyalaEventsLogger;
 
 import org.json.JSONObject;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Observable;
 import java.util.Observer;
@@ -66,14 +69,21 @@ public class OoyalaSkinPlayerActivity extends Activity implements Observer, Defa
   private static class NewStreamSelector implements StreamSelector {
     public NewStreamSelector() {
     }
+
+    //Copied directly from decompiled Stream.class
+    boolean betterThan(Stream original, Stream other, boolean isWifiEnabled) {
+      return original.getCombinedBitrate() == other.getCombinedBitrate() && original.getHeight() > other.getHeight() ? true : (isWifiEnabled ? original.getCombinedBitrate() > other.getCombinedBitrate() : Math.abs(400 - original.getCombinedBitrate()) < Math.abs(400 - other.getCombinedBitrate()));
+    }
+
     public Stream bestStream(Set<Stream> streams, boolean isWifiEnabled) {
-      if(streams != null && streams.size() != 0) {
+      if (streams != null && streams.size() != 0) {
+        Stream bestBitrateStream = null;
         Iterator var4 = streams.iterator();
-        while(var4.hasNext()) {
-          Stream stream = (Stream)var4.next();
+        while (var4.hasNext()) {
+          Stream stream = (Stream) var4.next();
 
           //If the asset is DASH, manually set the Widevine Server Path
-          if(stream.getDeliveryType().equals("dash")) {
+          if (stream.getDeliveryType().equals("dash")) {
             if (stream.getWidevineServerPath() == null) {
               WVStream s = new WVStream(stream.decodedURL().toString(), stream.getDeliveryType());
 
@@ -83,7 +93,14 @@ public class OoyalaSkinPlayerActivity extends Activity implements Observer, Defa
             }
             return stream;
           }
+
+          // Get best MP4 or HLS stream
+          if (Stream.isDeliveryTypePlayable(stream) && Stream.isProfilePlayable(stream) && (bestBitrateStream == null || betterThan(stream, bestBitrateStream, isWifiEnabled))) {
+            bestBitrateStream = stream;
+          }
+
         }
+        return bestBitrateStream;
       }
       return null;
     }
